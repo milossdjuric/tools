@@ -15,3 +15,4 @@ git clone https://github.com/c12s/starometry
 git clone https://github.com/c12s/protostar
 git clone https://github.com/c12s/meridian
 git clone https://github.com/c12s/pulsar
+git clone https://github.com/milossdjuric/rolling_update_service
