@@ -9,7 +9,7 @@ else
 fi
 
 # build contol plane's services
-docker compose build  #--no-cache
+docker compose build  --no-cache
 
 # start the control plane
 docker compose up -d
@@ -50,6 +50,7 @@ do
     mkdir "$(pwd)"/nodeconfig/star_"$i"
     docker run -d --name star_"$i" \
     --mount type=bind,source="$(pwd)"/nodeconfig/star_"$i",target="$NODE_ID_DIR_PATH" \
+    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
     --env STAR_HOSTNAME=star_"$i" \
     --env STAR_PORT=${STAR_PORT} \
     --env STAR_ADDRESS=${STAR_ADDRESS} \
@@ -62,13 +63,12 @@ do
     --env NODE_ID_FILE_NAME=${NODE_ID_FILE_NAME} \
     --env BIND_ADDRESS=10.5.0.$(($i+2)) \
     --env BIND_PORT=${BIND_PORT} \
-    --env DOCKER_CLIENT_ADDRESS=${DOCKER_CLIENT_ADDRESS} \
+    --env DOCKER_CLIENT_ADDRESS=${STAR_DOCKER_CLIENT_ADDRESS} \
     --env DOCKER_CLIENT_IMAGE=${DOCKER_CLIENT_IMAGE} \
     -p $(($STAR_PORT + $i - 1)):${STAR_PORT} \
     --hostname star_"$i" \
     --network=tools_network \
     --ip 10.5.0.$(($i+2)) \
-    --volume /var/run/docker.sock:/var/run/docker.sock \
     star:latest
 done
 

@@ -428,20 +428,6 @@ services:
     networks:
       - network
 
-  
-  rus_test_app:
-    container_name: rus_test_app
-    build:
-      context: ../
-      dockerfile: ./rus_test_app/Dockerfile
-    ports: 
-      - 8899:8899
-    depends_on:
-      - nats
-    networks:
-      network:
-        network
-
   rolling_update_service:
     container_name: rolling_update_service
     build:
@@ -450,13 +436,14 @@ services:
     ports:     
       - ${UPDATE_SERVICE_LISTEN_PORT}:${UPDATE_SERVICE_LISTEN_PORT}
     environment:    
-      - UPDATE_SERVICE_ADDRESS=:${UPDATE_SERVICE_PORT}
-      - UPDATE_SERVICE_ETCD_ADDRESS=${UPDATE_SERVICE_ETCD_ADDRESS}
-      - NATS_HOSTNAME=${NATS_HOSTNAME}
-      - NATS_PORT=${NATS_PORT}
-      - DOCKER_CLIENT_ADDRESS=${DOCKER_CLIENT_ADDRESS}
+      - UPDATE_SERVICE_ADDRESS=${UPDATE_SERVICE_HOSTNAME}:${UPDATE_SERVICE_PORT}
+      - UPDATE_SERVICE_ETCD_ADDRESS=${UPDATE_SERVICE_ETCD_HOSTNAME}:${UPDATE_SERVICE_ETCD_PORT}
+      - NATS_ADDRESS=${NATS_HOSTNAME}:${NATS_PORT}
+      - UPDATE_SERVICE_DOCKER_CLIENT_ADDRESS=${UPDATE_SERVICE_DOCKER_CLIENT_ADDRESS}
       - DOCKER_CONTAINER_IMAGE=${DOCKER_CLIENT_IMAGE}
       - MAGNETAR_ADDRESS=${MAGNETAR_HOSTNAME}:${MAGNETAR_PORT}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - nats
       - rolling_update_service_etcd
@@ -477,7 +464,6 @@ services:
     networks: 
       network:
         network
-  
 
 networks:
   network:
