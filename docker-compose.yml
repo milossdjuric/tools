@@ -484,6 +484,43 @@ services:
       network:
         ipv4_address: 10.5.0.125
 
+  rolling_update_service:
+    container_name: rolling_update_service
+    build:
+      context: ../
+      dockerfile: ./rolling_update_service/Dockerfile
+    ports:
+      - ${UPDATE_SERVICE_PORT}:${UPDATE_SERVICE_PORT}
+    environment:    
+      - UPDATE_SERVICE_ADDRESS=${UPDATE_SERVICE_HOSTNAME}:${UPDATE_SERVICE_PORT}
+      - UPDATE_SERVICE_ETCD_ADDRESS=${UPDATE_SERVICE_ETCD_HOSTNAME}:${UPDATE_SERVICE_ETCD_PORT}
+      - NATS_ADDRESS=${NATS_HOSTNAME}:${NATS_PORT}
+      - UPDATE_SERVICE_DOCKER_CLIENT_ADDRESS=${UPDATE_SERVICE_DOCKER_CLIENT_ADDRESS}
+      - DOCKER_CONTAINER_IMAGE=${DOCKER_CLIENT_IMAGE}
+      - MAGNETAR_ADDRESS=${MAGNETAR_HOSTNAME}:${MAGNETAR_PORT}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - nats
+      - rolling_update_service_etcd
+    restart: "no"
+    networks:
+      network:
+        ipv4_address: 10.5.0.126
+
+  rolling_update_service_etcd:
+    image: 'bitnami/etcd:latest'
+    container_name: rolling_update_service_etcd
+    hostname: ${UPDATE_SERVICE_ETCD_HOSTNAME}
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://${UPDATE_SERVICE_ETCD_HOSTNAME}:${UPDATE_SERVICE_ETCD_PORT}
+    volumes:
+      - rolling_us_etcd_data:/bitnami/etcd
+    networks: 
+      network:
+        ipv4_address: 10.5.0.127  
+
 networks:
   network:
     driver: bridge
@@ -512,4 +549,6 @@ volumes:
   meridian_neo4j_logs:
     driver: local
   pulsar_etcd_data:
+    driver: local
+  rolling_us_etcd_data:
     driver: local
